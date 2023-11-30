@@ -9,6 +9,22 @@ Author: Michael Bailey
 class swdl {
 
 	/**
+	 * Constructor
+	 */
+	public function __construct() {
+		if ( !defined( 'WP_DEBUG' ) || !WP_DEBUG || !defined( 'WP_DEBUG_LOG' ) || !WP_DEBUG_LOG ) {
+			$log_file = WP_CONTENT_DIR . '/debug.log';
+
+			if ( !file_exists( $log_file ) ) {
+				touch( $log_file );
+				chmod( $log_file, 0644 );
+			}
+
+			ini_set( 'error_log', $log_file );
+		}
+	}
+
+	/**
 	 * Logs a message with optional color coding.
 	 *
 	 * @param mixed  $message The message to log.
@@ -61,3 +77,6 @@ class swdl {
 		self::log( '' );
 	}
 }
+
+// Instantiate the class
+new swdl();
