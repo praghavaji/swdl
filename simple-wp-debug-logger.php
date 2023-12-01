@@ -31,10 +31,6 @@ class swdl {
 	 * @param string $color   Optional. The color code for the message. Default 'default'.
 	 */
 	public static function log( $message, $title = '', $color = 'default' ) {
-		if ( ! defined( 'WP_DEBUG' ) || true !== WP_DEBUG ) {
-			return;
-		}
-
 		$formattedMessage = self::format( $message, $title, $color );
 		error_log( $formattedMessage );
 	}
