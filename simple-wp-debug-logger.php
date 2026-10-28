@@ -6,18 +6,22 @@ Version: 1.0
 Author: Michael Bailey
 */
 
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
+
 class swdl {
 
 	/**
 	 * Constructor
 	 */
 	public function __construct() {
-		if ( !defined( 'WP_DEBUG' ) || !WP_DEBUG || !defined( 'WP_DEBUG_LOG' ) || !WP_DEBUG_LOG ) {
-			$log_file = WP_CONTENT_DIR . '/debug.log';
+		if ( ! defined( 'WP_DEBUG' ) || ! WP_DEBUG || ! defined( 'WP_DEBUG_LOG' ) || ! WP_DEBUG_LOG ) {
+			$log_file = defined( 'WP_CONTENT_DIR' ) ? WP_CONTENT_DIR . '/debug.log' : __DIR__ . '/debug.log';
 
-			if ( !file_exists( $log_file ) ) {
-				touch( $log_file );
-				chmod( $log_file, 0644 );
+			if ( ! file_exists( $log_file ) ) {
+				@touch( $log_file );
+				@chmod( $log_file, 0644 );
 			}
 
 			ini_set( 'error_log', $log_file );
@@ -25,9 +29,23 @@ class swdl {
 	}
 
 	/**
-	 * Logs a message with optional color coding.
+	 * Get formatted date string accounting for WP timezone setting if available.
+	 *
+	 * @return string
+	 */
+	public static function get_formatted_date() {
+		if ( function_exists( 'wp_date' ) ) {
+			return wp_date( 'Y-m-d H:i:s' );
+		}
+		$date = new DateTime();
+		return $date->format( 'Y-m-d H:i:s' );
+	}
+
+	/**
+	 * Logs a message with optional title and color coding.
 	 *
 	 * @param mixed  $message The message to log.
+	 * @param string $title   Optional. The title/label for the message. Default ''.
 	 * @param string $color   Optional. The color code for the message. Default 'default'.
 	 */
 	public static function log( $message, $title = '', $color = 'default' ) {
@@ -36,41 +54,42 @@ class swdl {
 	}
 
 	/**
-	 * Formats the log message with date, time, and optional color.
+	 * Formats the log message with date, time, title, and optional color.
 	 *
 	 * @param mixed  $message The message to format.
+	 * @param string $title   The title for the message.
 	 * @param string $color   The color code for the message.
 	 * @return string The formatted message.
 	 */
-	private static function format( $message, $title, $color ) {
-	
-		$beforeTitle = ' ';
-		$is_array_or_object = false;
-		if ( is_array( $message ) || is_object( $message ) ) {
-			$beforeTitle = "\n";
-			$is_array_or_object = true;
-			$message = print_r( $message, true );
-		}
-	
-		$date = new DateTime();
-		$formattedDate = $date->format( 'Y-m-d H:i:s' );
-		$colorPart = ( 'default' !== $color ) ? " [{$color}]" : '';
-	    $titlePart = $title ? "{$title}" : '';	
+	public static function format( $message, $title = '', $color = 'default' ) {
+		$formattedDate = self::get_formatted_date();
+		$colorPart     = ( 'default' !== $color && '' !== $color ) ? " [{$color}]" : '';
 
-		// Include the message type and the '|' separator after the date and color part
-		if ( $is_array_or_object ) {
-			return "[{$formattedDate}]{$colorPart}{$beforeTitle}{$titlePart} | {$message}";
-		}
-		else {
-			return "[{$formattedDate}]{$colorPart}{$beforeTitle}{$titlePart} | {$message}\n";
+		if ( is_array( $message ) || is_object( $message ) ) {
+			$messageStr = print_r( $message, true );
+			if ( ! empty( $title ) ) {
+				return "[{$formattedDate}]{$colorPart}\n{$title} |\n{$messageStr}";
+			} else {
+				return "[{$formattedDate}]{$colorPart}\n{$messageStr}";
+			}
+		} else {
+			if ( ! empty( $title ) ) {
+				return "[{$formattedDate}]{$colorPart} {$title} | {$message}";
+			} else {
+				return "[{$formattedDate}]{$colorPart} {$message}";
+			}
 		}
 	}
-	
+
 	/**
 	 * Logs a delimiter line.
+	 *
+	 * @param string $char   Optional character for delimiter. Default '-'.
+	 * @param int    $length Optional length of delimiter line. Default 50.
 	 */
-	public static function break() {
-		self::log( '' );
+	public static function break( $char = '-', $length = 50 ) {
+		$line = str_repeat( $char, $length );
+		self::log( $line );
 	}
 }
 
