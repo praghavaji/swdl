@@ -1,0 +1,13 @@
+{
+    "name": "swdl/simple-wp-debug-logger",
+    "description": "Simple WordPress Debug Logger",
+    "type": "wordpress-plugin",
+    "authors": [
+        {
+            "name": "Michael Bailey"
+        }
+    ],
+    "require-dev": {
+        "phpunit/phpunit": "^9.0"
+    }
+}
